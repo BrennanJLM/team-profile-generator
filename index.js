@@ -1,143 +1,177 @@
+"use strict";
+
+//MODULES ############################################################################
 const inquirer = require('inquirer');
-const Employee = require('./lib/Employee');
+const json2html = require('node-json2html');
+
+//SCRIPTS ############################################################################
+
 const Engineer = require('./lib/Engineer');
 const Intern = require('./lib/Intern');
 const Manager = require('./lib/Manager');
 
-manager1 = new Manager()
-employee1 = new Engineer()
-employee2 = new Intern()
 
-//intern and engineer array
-interns = []
-engineers = []
-
- inquirer.prompt([
-        
+//FUNCTIONS ############################################################################
+const GetManager = async() => {
+  return await inquirer.prompt([
     {
-        type: 'text',
-        name: 'managername',
-        message: 'What is the team managers name?',
-       
+      type: 'text',
+      name: 'name',
+      message: 'What is the team managers name?',
     },
     {
-        type: 'text',
-        name: 'managerid',
-        message: 'What is the team managers id?',
-      
+      type: 'text',
+      name: 'id',
+      message: 'What is the team managers id?',
     },
     {
-        type: 'text',
-        name: 'manageremail',
-        message: 'What is the team managers email?',
-       
+      type: 'text',
+      name: 'email',
+      message: 'What is the team managers email?',
     },
     {
-        type: 'text',
-        name: 'officeNumber',
-        message: 'What is the team managers office number?',
-       
+      type: 'text',
+      name: 'office',
+      message: 'What is the team managers office number?',
     },
+  ]);
+};
 
- ])
-//create manager
-.then ((answer) => {
-
-   manager1.name = answer.managername
-   manager1.id = answer.managerid
-   manager1.email = answer.manageremail
-   
-   inquirer.prompt([
-        
+const GetOptions = async() => {
+  return await inquirer.prompt([
     {
-        type: 'text',
-        name: 'name',
-        message: 'What is your name?'
-       
+      type: 'list',
+      name: 'role',
+      message: "Select an employee role to add a new team member or select 'Finish' to exit.",
+      choices: ['Intern','Engineer',new inquirer.Separator(),'Finish'],
+      default: 2,
     },
+  ]);
+};
+
+const GetIntern = async() => {
+  return inquirer.prompt([
     {
-        type: 'text',
-        name: 'id',
-        message: 'What is your id?'
-      
+      type: 'text',
+      name: 'name',
+      message: 'What is your name?'
     },
     {
-        type: 'text',
-        name: 'email', 
-        message: 'What is your email?'
-       
+      type: 'text',
+      name: 'id',
+      message: 'What is your id?'
     },
     {
-        type: 'text',
-        name: 'github', 
-        message: 'What is your github username?'
-       
-    },
- ])
-//create employee
-.then ((answer) => {
-
-   employee1.name = answer.name
-   employee1.id = answer.id
-   employee1.email = answer.email
-   employee1.github = answer.github
-  
-   inquirer.prompt([
-        
-    {
-        type: 'text',
-        name: 'name',
-        message: 'What is your name?'
-       
+      type: 'text',
+      name: 'email', 
+      message: 'What is your email?'
     },
     {
-        type: 'text',
-        name: 'id',
-        message: 'What is your id?'
-      
+      type: 'text',
+      name: 'school', 
+      message: 'What is your school name?'
+    },
+  ]);
+};
+
+const GetEngineer = async() => {
+  return await inquirer.prompt([
+    {
+      type: 'text',
+      name: 'name',
+      message: 'What is your name?'
     },
     {
-        type: 'text',
-        name: 'email', 
-        message: 'What is your email?'
-       
+      type: 'text',
+      name: 'id',
+      message: 'What is your id?'
     },
     {
-        type: 'text',
-        name: 'school', 
-        message: 'What is your school name?'
-       
+      type: 'text',
+      name: 'email', 
+      message: 'What is your email?'
     },
- ])
-//create employee
-.then ((answer) => {
+    {
+      type: 'text',
+      name: 'github', 
+      message: 'What is your github username?'
+    },
+  ]);
+};
 
-   employee2.name = answer.name
-   employee2.id = answer.id
-   employee2.email = answer.email
-   employee2.school = answer.school
-  
-})
-})
-})
+const BuildJSON = async() => {
+  let rtn = false;
+  try {
+    //get manager
+    let m_ans = await GetManager();
+    //intern and engineer array
+    let interns = [];
+    let engineers = [];
+    //add employees
+    let run = true;
+    while(run) {
+      let o_ans = await GetOptions();
+      switch(o_ans.role) {
+        case 'Intern':
+          let i_ans = await GetIntern();
+          interns.push(new Intern(i_ans.name, i_ans.id, i_ans.email, i_ans.school));
+          break;
+        case 'Engineer':
+          let e_ans = await GetEngineer();
+          engineers.push(new Engineer(e_ans.name, e_ans.id, e_ans.email, e_ans.github));
+          break;
+        default:
+          run = false;
+      }
+    };
+    
+    rtn = JSON.stringify({
+      'manager': new Manager(m_ans.name, m_ans.id, m_ans.email, m_ans.office),
+      'interns': interns,
+      'engineers': engineers,
+    });
+    console.log(rtn);
+  } catch(err) {
+    console.log(err);
+  }
+  return rtn;
+};
 
 
-// this.questions = [
-//     {
-//         type: "list",
-//         name: "role",
-//         message: "Select an employee role to add a new team member or select 'Finish' to exit.",
-//         choices: ["Engineer", "Intern", "Finish"]
-//     },
+//PROGRAM ############################################################################
+const main = async() => {
+  let data = await BuildJSON();
 
+  let template = [
+    {'<>':'h1','text':'Manager'},
+    {'<>':'div','text':'Name: ${manager.name} ID: ${manager.id} Email: ${manager.email} Office Number: ${manager.office}'},
+    {'<>':'h2','text':'Interns'},
+    {'<>':'ul','html':[
+      {'<>':'li','text':'${name} ${id} ${email} ${school}','{}':function(){return(this.interns)}}
+    ]},
+    {'<>':'h2','text':'Engineers'},
+    {'<>':'ul','html':[
+      {'<>':'li','text':'${name} ${id} ${email} ${github}','{}':function(){return(this.engineers)}}
+    ]}
+  ];
 
+  let html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      </head>
+      <body>
+  `;
 
-//intern and engineer array
- 
-// s]
+  html += json2html.render(data, template);
 
+  html += `
+      </body>
+    </html>
+  `;
 
+  console.log(html);
+};
 
-
-
-
+main();

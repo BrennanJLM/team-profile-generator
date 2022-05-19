@@ -23,7 +23,6 @@
     "jest": "^28.1.0"
   },
   "dependencies": {
-    "inquirer": "^8.2.4",
-    "node-json2html": "^2.2.2"
+    "inquirer": "^8.2.4"
   }
 }
