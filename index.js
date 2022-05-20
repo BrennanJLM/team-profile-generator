@@ -3,6 +3,7 @@
 //MODULES ############################################################################
 const inquirer = require('inquirer');
 const json2html = require('node-json2html');
+const fs = require('fs');
 
 //SCRIPTS ############################################################################
 
@@ -96,8 +97,26 @@ const GetEngineer = async() => {
       name: 'github', 
       message: 'What is your github username?'
     },
-  ]);
-};
+  ])
+
+  .then ((answer) => {
+    const writeFile = fileContent => {
+        return new Promise((resolve, reject) => {
+          fs.writeFile('./dist.index.html', fileContent, err => {
+            if (err) {
+              reject(err);
+              return;
+            }
+      
+            resolve({
+              ok: true,
+              message: 'File created!'
+            });
+          });
+        });
+    };
+
+})};
 
 const BuildJSON = async() => {
   let rtn = false;
@@ -138,6 +157,8 @@ const BuildJSON = async() => {
 };
 
 
+
+
 //PROGRAM ############################################################################
 const main = async() => {
   let data = await BuildJSON();
@@ -173,5 +194,7 @@ const main = async() => {
 
   console.log(html);
 };
+
+
 
 main();
