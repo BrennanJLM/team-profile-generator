@@ -1,4 +1,4 @@
-## . Object-Oriented Programming Challenge: Team Profile Generator (Module 9)
+## Object-Oriented Programming Challenge: Team Profile Generator (Module 9)
 The purpose of this challenge was to create an html page with information inputed by the user.  The user is the "manager" and is able to input new employees into the system.
 
 ## Installation:
